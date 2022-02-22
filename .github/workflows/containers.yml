@@ -1,0 +1,59 @@
+name: Containers
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  REPO: quay.io/coreos/mkpasswd
+  ARCHES: amd64 arm64
+
+jobs:
+  build:
+    name: Build and push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install build dependencies
+        run: sudo apt-get -y install qemu-user-static
+      - name: Check out repo
+        uses: actions/checkout@v2
+      - name: Build containers
+        run: |
+          set -x
+          for arch in ${{ env.ARCHES }}; do
+              echo "==== Building for $arch"
+              podman build -t "${{ env.REPO }}:$arch" --arch="$arch" .
+          done
+      - name: Push containers
+        run: |
+          mkdir -p ~/.docker
+          cat > ~/.docker/config.json <<EOF
+          ${{ secrets.QUAY_AUTH }}
+          EOF
+
+          set -x
+          images=
+          for arch in ${{ env.ARCHES }}; do
+              echo "==== Pushing $arch"
+              image="${{ env.REPO }}:$arch"
+              podman push "$image"
+              images="$images $image"
+          done
+          podman manifest create "${{ env.REPO }}:latest" $images
+          podman manifest push "${{ env.REPO }}:latest" "${{ env.REPO }}:latest"
+          rm ~/.docker/config.json
+      - name: Update README
+        run: |
+          # This is load-bearing: GitHub will disable the job if the repo
+          # doesn't stay active.  Do not enable branch protection for main;
+          # it'll break this.
+          git config user.name 'CoreOS Bot'
+          git config user.email coreosbot@fedoraproject.org
+          sed -i "s/updated-.*-green/updated-$(date +%Y--%m--%d)-green/" README.md
+          git add README.md
+          git commit -m "README: update build date"
+          git push
