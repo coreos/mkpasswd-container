@@ -18,7 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install build dependencies
-        run: sudo apt-get -y install qemu-user-static
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install qemu-user-static
       - name: Check out repo
         uses: actions/checkout@v2
       - name: Build containers
