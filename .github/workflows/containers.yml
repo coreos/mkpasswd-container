@@ -57,5 +57,9 @@ jobs:
           git config user.email coreosbot@fedoraproject.org
           sed -i "s/updated-.*-green/updated-$(date +%Y--%m--%d)-green/" README.md
           git add README.md
+          if git diff --quiet --staged --exit-code; then
+              echo "README.md already up to date"
+              exit 0
+          fi
           git commit -m "README: update build date"
           git push
