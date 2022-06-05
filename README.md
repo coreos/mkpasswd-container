@@ -1,6 +1,6 @@
 # mkpasswd container
 
-[![quay.io repository](https://img.shields.io/badge/updated-2022--05--29-green)](https://quay.io/repository/coreos/mkpasswd)
+[![quay.io repository](https://img.shields.io/badge/updated-2022--06--05-green)](https://quay.io/repository/coreos/mkpasswd)
 
 This is a trivial Dockerfile to build a Fedora-based container for [`mkpasswd(1)`](https://github.com/rfc1036/whois).
 
